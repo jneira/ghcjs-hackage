@@ -1,47 +1,57 @@
-From fbdd2cb98789babe1d272edc1005a8b9cf3d5f93 Mon Sep 17 00:00:00 2001
+From ced5b4998089a4c26197994b5a3dc10558093778 Mon Sep 17 00:00:00 2001
 From: jneira <atreyu.bbb@gmail.com>
-Date: Thu, 23 May 2019 14:19:36 +0200
-Subject: [PATCH] Patched for ghcjs in windows
+Date: Mon, 27 May 2019 00:06:11 +0200
+Subject: [PATCH] Patched
 
 ---
- Basement/Terminal/Size.hsc |  4 ++++
- cbits/foundation_system.h  |  5 ++++-
+ Basement/Terminal/Size.hsc |  6 +++++-
+ cbits/foundation_system.h  |  7 ++++++-
  cbits/ghcjswin.h           | 12 ++++++++++++
- 3 files changed, 20 insertions(+), 1 deletion(-)
+ 3 files changed, 23 insertions(+), 2 deletions(-)
  create mode 100644 cbits/ghcjswin.h
 
 diff --git a/Basement/Terminal/Size.hsc b/Basement/Terminal/Size.hsc
-index 62c315e..7d648e6 100644
+index 62c315e..e73dab7 100644
 --- a/Basement/Terminal/Size.hsc
 +++ b/Basement/Terminal/Size.hsc
 @@ -19,7 +19,11 @@ import           Graphics.Win32.Misc (getStdHandle, sTD_OUTPUT_HANDLE, StdHandle
  
  #include <windows.h>
  #elif defined FOUNDATION_SYSTEM_UNIX
+-#include <sys/ioctl.h>
 +# if defined(__GHCJS__) && defined(_WIN32)
-+#include <ghcjswin.h>
++#  include <ghcjswin.h>
 +# else
- #include <sys/ioctl.h>
++#  include <sys/ioctl.h>
 +# endif
  #ifdef __sun
  #include <sys/termios.h>
  #endif
 diff --git a/cbits/foundation_system.h b/cbits/foundation_system.h
-index 2419b43..1a67c6c 100644
+index 2419b43..79f2306 100644
 --- a/cbits/foundation_system.h
 +++ b/cbits/foundation_system.h
-@@ -1,7 +1,10 @@
+@@ -1,7 +1,11 @@
  #ifndef FOUNDATION_SYSTEM_H
  # define FOUNDATION_SYSTEM_H
  
 -#ifdef _WIN32
-+#if __GHCJS__
++#if defined(_WIN32)
++# if defined(__GHCJS__)
 +    #define FOUNDATION_SYSTEM_UNIX
 +    #define FOUNDATION_SYSTEM_LINUX
-+#elif _WIN32
++# else 
     #define FOUNDATION_SYSTEM_WINDOWS
     #define FOUNDATION_SYSTEM_API_NO_CLOCK
  
+@@ -13,6 +17,7 @@
+       #define FOUNDATION_SYSTEM_WINDOWS_32
+       //define something for Windows (32-bit only)
+    #endif
++# endif
+ #elif __APPLE__
+     #include "TargetConditionals.h"
+     #include "Availability.h"
 diff --git a/cbits/ghcjswin.h b/cbits/ghcjswin.h
 new file mode 100644
 index 0000000..b041912
@@ -62,3 +72,4 @@ index 0000000..b041912
 +#define TIOCSPGRP  (('T' << 8) | 0x10)
 -- 
 2.16.2.windows.1
+
