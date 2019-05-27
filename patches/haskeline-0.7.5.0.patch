@@ -1,0 +1,49 @@
+From 365ab0c5e7dabc1de71324ff12054ae5c2dfcd27 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Mon, 27 May 2019 11:28:45 +0200
+Subject: [PATCH] Patched
+
+---
+ System/Console/Haskeline/Backend/Posix.hsc |  5 ++++-
+ includes/ghcjswin.h                        | 12 ++++++++++++
+ 2 files changed, 16 insertions(+), 1 deletion(-)
+ create mode 100644 includes/ghcjswin.h
+
+diff --git a/System/Console/Haskeline/Backend/Posix.hsc b/System/Console/Haskeline/Backend/Posix.hsc
+index 678c97d..74397e0 100644
+--- a/System/Console/Haskeline/Backend/Posix.hsc
++++ b/System/Console/Haskeline/Backend/Posix.hsc
+@@ -45,8 +45,11 @@ import System.Posix.Internals (FD)
+ #if defined(USE_TERMIOS_H) || defined(__ANDROID__)
+ #include <termios.h>
+ #endif
++#if defined(__GHCJS__) && defined(_WIN32)
++#include <ghcjswin.h>
++#else
+ #include <sys/ioctl.h>
+-
++#endif
+ -----------------------------------------------
+ -- Input/output handles
+ data Handles = Handles {hIn, hOut :: ExternalHandle
+diff --git a/includes/ghcjswin.h b/includes/ghcjswin.h
+new file mode 100644
+index 0000000..b041912
+--- /dev/null
++++ b/includes/ghcjswin.h
+@@ -0,0 +1,12 @@
++// from termios.h
++struct winsize
++{
++  unsigned short ws_row, ws_col;
++  unsigned short ws_xpixel, ws_ypixel;
++};
++
++#define TIOCGWINSZ (('T' << 8) | 1)
++#define TIOCSWINSZ (('T' << 8) | 2)
++#define TIOCLINUX  (('T' << 8) | 3)
++#define TIOCGPGRP  (('T' << 8) | 0xf)
++#define TIOCSPGRP  (('T' << 8) | 0x10)
+-- 
+2.16.2.windows.1
+
