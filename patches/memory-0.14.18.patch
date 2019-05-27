@@ -1,0 +1,100 @@
+From 416d5a1b1d8c018087bdb2f8db3b8cc344511b01 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Mon, 27 May 2019 10:10:15 +0200
+Subject: [PATCH] Patched
+
+---
+ Data/Memory/MemMap/Posix.hsc |  5 ++++-
+ cbits/ghcjswin.h             | 38 ++++++++++++++++++++++++++++++++++++++
+ memory.cabal                 |  6 ++++--
+ 3 files changed, 46 insertions(+), 3 deletions(-)
+ create mode 100644 cbits/ghcjswin.h
+
+diff --git a/Data/Memory/MemMap/Posix.hsc b/Data/Memory/MemMap/Posix.hsc
+index 16bc246..aaa5218 100644
+--- a/Data/Memory/MemMap/Posix.hsc
++++ b/Data/Memory/MemMap/Posix.hsc
+@@ -16,8 +16,11 @@
+ -- documentation for the underlying function.
+ --
+ -----------------------------------------------------------------------------
+-
++#if defined(__GHCJS__) && defined(_WIN32)
++#include <ghcjswin.h>
++#else
+ #include <sys/mman.h>
++#endif
+ #include <unistd.h>
+ 
+ {-# LANGUAGE ForeignFunctionInterface #-}
+diff --git a/cbits/ghcjswin.h b/cbits/ghcjswin.h
+new file mode 100644
+index 0000000..d5c7868
+--- /dev/null
++++ b/cbits/ghcjswin.h
+@@ -0,0 +1,38 @@
++#if defined(__GHCJS__) && defined(_WIN32)
++
++// from sys/mman.h
++
++#define PROT_NONE 0
++#define PROT_READ 1
++#define PROT_WRITE 2
++#define PROT_EXEC 4
++
++#define MAP_FILE 0
++#define MAP_SHARED 1
++#define MAP_PRIVATE 2
++#define MAP_TYPE 0xF
++#define MAP_FIXED 0x10
++#define MAP_ANONYMOUS 0x20
++#define MAP_ANON MAP_ANONYMOUS
++
++/*
++ * Flags for msync.
++ */
++#define MS_ASYNC 1
++#define MS_SYNC 2
++#define MS_INVALIDATE 4
++
++/*
++ * Flags for madvise.  BSD/Linux-specific.
++ */
++#define MADV_NORMAL 0
++#define MADV_SEQUENTIAL 1
++#define MADV_RANDOM 2
++#define MADV_WILLNEED 3
++#define MADV_DONTNEED 4
++
++// from sys/unistd.h
++
++#define _SC_PAGESIZE                      8
++
++#endif
+diff --git a/memory.cabal b/memory.cabal
+index 228a610..0c247a0 100644
+--- a/memory.cabal
++++ b/memory.cabal
+@@ -28,7 +28,8 @@ Homepage:            https://github.com/vincenthz/hs-memory
+ Bug-Reports:         https://github.com/vincenthz/hs-memory/issues
+ cabal-version:       1.18
+ extra-doc-files:     README.md CHANGELOG.md
+-
++extra-source-files: cbits/*.h
++                     
+ source-repository head
+   type: git
+   location: https://github.com/vincenthz/hs-memory
+@@ -95,7 +96,8 @@ Library
+     Other-modules:   Data.Memory.MemMap.Windows
+   else
+     Other-modules:   Data.Memory.MemMap.Posix
+-
++  if impl(ghcjs)
++    include-dirs:    cbits
+   -- optional support bytearray instance for bytestring
+   if flag(support_bytestring)
+     CPP-options:     -DWITH_BYTESTRING_SUPPORT
+-- 
+2.16.2.windows.1
+
